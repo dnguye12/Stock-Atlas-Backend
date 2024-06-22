@@ -4,7 +4,9 @@ const express = require('express')
 require('express-async-errors')
 const app = express()
 const cors = require('cors')
-const stocksRouter = require('./controllers/stocks')
+
+const chartRouter = require('./controllers/chart')
+
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
@@ -24,7 +26,7 @@ app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
 app.use(middleware.requestLogger)
-app.use('/api/stocks', stocksRouter)
+app.use('/api/chart', chartRouter)
 
 if (process.env.NODE_ENV === 'test') {  
 	const testingRouter = require('./controllers/testing')  
