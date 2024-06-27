@@ -8,7 +8,7 @@ chartRouter.get('/:ticker/:period1/:period2?/:intervals?', async (request, respo
         queryOptions.period2 = period2
     }
     if(intervals) {
-        queryOptions.intervals = intervals
+        queryOptions.interval = intervals
     }
 
     const result = await yahooFinance.chart(ticker, queryOptions)
