@@ -6,10 +6,12 @@ const app = express()
 const cors = require('cors')
 
 const chartRouter = require('./controllers/chart')
+const dailyRouter = require('./controllers/daily')
 
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
+
 mongoose.set('strictQuery', false)
 
 logger.info('connecting to', config.MONGODB_URI)
@@ -26,7 +28,9 @@ app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
 app.use(middleware.requestLogger)
+
 app.use('/api/chart', chartRouter)
+app.use('/api/daily', dailyRouter)
 
 if (process.env.NODE_ENV === 'test') {  
 	const testingRouter = require('./controllers/testing')  
