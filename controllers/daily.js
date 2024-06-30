@@ -58,7 +58,6 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
         if (acceptButton) {
             await page.click(acceptButtonSelector);
             await page.waitForSelector('table')
-            await new Promise(r => setTimeout(r, 2000))
         } else {
             console.log('daily/active API - Accept All button not found');
         }
