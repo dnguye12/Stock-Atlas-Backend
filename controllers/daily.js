@@ -72,15 +72,15 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
 
                 if (cells.length >= 9) {
                     const rowObj = {
-                        Symbol: cells[0].textContent.trim(),
-                        Name: cells[1].textContent.trim(),
-                        Price: cells[2].textContent.trim(),
-                        Change: cells[3].textContent.trim(),
-                        PercentChange: cells[4].textContent.trim(),
-                        Volume: cells[5].textContent.trim(),
-                        AvgVol: cells[6].textContent.trim(),
-                        MarketCap: cells[7].textContent.trim(),
-                        PE: cells[8].textContent.trim()
+                        symbol: cells[0].textContent.trim(),
+                        name: cells[1].textContent.trim(),
+                        price: cells[2].textContent.trim(),
+                        change: cells[3].textContent.trim(),
+                        percentChange: cells[4].textContent.trim(),
+                        volume: cells[5].textContent.trim(),
+                        avgVol: cells[6].textContent.trim(),
+                        marketCap: cells[7].textContent.trim(),
+                        pe: cells[8].textContent.trim()
                     };
                     res.push(rowObj);
                 }
