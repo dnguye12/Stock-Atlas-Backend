@@ -50,7 +50,8 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
         const page = await browser.newPage()
 
         await page.setViewport({ width: 1920, height: 1080 });
-        await page.goto(url, { waitUntil: 'networkidle2' })
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
 
         const acceptButtonSelector = '.actions .accept-all';
         const acceptButton = await page.$(acceptButtonSelector);
@@ -134,7 +135,8 @@ dailyRouter.get('/active/:count?', async (request, response) => {
         const page = await browser.newPage()
 
         await page.setViewport({ width: 1920, height: 1080 });
-        await page.goto(url, { waitUntil: 'networkidle2' })
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
 
         const acceptButtonSelector = '.actions .accept-all';
         const acceptButton = await page.$(acceptButtonSelector);
