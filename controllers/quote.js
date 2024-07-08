@@ -1,7 +1,7 @@
 const yahooFinance = require('yahoo-finance2').default
 const quoteRouter = require('express').Router()
 
-quoteRouter.get('/quote/:ticker', async( request, response) => {
+quoteRouter.get('/:ticker', async( request, response) => {
     const {ticker} = request.params
 
     try {
@@ -13,3 +13,5 @@ quoteRouter.get('/quote/:ticker', async( request, response) => {
         response.status(500).json({ error: `Failed to get quote for ${ticker}` });
     }
 })
+
+module.exports = quoteRouter
