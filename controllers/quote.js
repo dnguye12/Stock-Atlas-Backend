@@ -53,4 +53,22 @@ quoteRouter.get('/logo/:ticker', async (request, response) => {
     }
 })
 
+quoteRouter.get('/summary/:ticker/*', async(request, response) => {
+    const { ticker } = request.params
+    const queryPart = request.params[0]
+    const paramsList = queryPart.split('&')
+
+    const queryOptions = {
+        modules: paramsList
+    }
+    try {
+        let result = await yahooFinance.quoteSummary(ticker, queryOptions)
+        if (result) {
+            response.json(result)
+        }
+    } catch (error) {
+        response.status(500).json({ error: `Failed to get quote summary for ${ticker}` });
+    }
+})
+
 module.exports = quoteRouter
