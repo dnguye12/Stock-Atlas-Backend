@@ -19,7 +19,8 @@ quoteRouter.get('/:ticker', async (request, response) => {
 })
 
 quoteRouter.get('/logo/:ticker', async (request, response) => {
-    const { ticker } = request.params
+    let { ticker } = request.params
+    ticker = ticker.toUpperCase()
 
     try {
         let logo = await StockLogo.findById(ticker)
@@ -68,6 +69,19 @@ quoteRouter.get('/summary/:ticker/*', async(request, response) => {
         }
     } catch (error) {
         response.status(500).json({ error: `Failed to get quote summary for ${ticker}` });
+    }
+})
+
+quoteRouter.get('/recommendationsBySymbol/:ticker', async(request, response) => {
+    const { ticker } = request.params
+
+    try {
+        let result = await yahooFinance.recommendationsBySymbol(ticker)
+        if(result) {
+            response.json(result)
+        }
+    }catch (error) {
+        response.status(500).json({ error: `Failed to get recommendation by symbol for ${ticker}` });
     }
 })
 
