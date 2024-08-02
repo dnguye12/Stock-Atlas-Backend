@@ -85,4 +85,22 @@ quoteRouter.get('/recommendationsBySymbol/:ticker', async(request, response) => 
     }
 })
 
+quoteRouter.get('/search/:query', async(request, response) => {
+    const { query } = request.params
+
+    const queryOptions = {
+        quotesCount: 5,
+        newsCount: 0
+    }
+    try {
+        const result = await yahooFinance.search(query, queryOptions)
+
+        if(result) {
+            response.json(result)
+        }
+    }catch (error) {
+        response.status(500).json({ error: `Failed to search result for ${query}` });
+    }
+})
+
 module.exports = quoteRouter
