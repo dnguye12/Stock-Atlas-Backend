@@ -8,6 +8,7 @@ const cors = require('cors')
 const chartRouter = require('./controllers/chart')
 const dailyRouter = require('./controllers/daily')
 const quoteRouter = require('./controllers/quote')
+const insightsRouter = require('./controllers/insights')
 
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
@@ -34,6 +35,7 @@ app.use(middleware.requestLogger)
 app.use('/api/chart', chartRouter)
 app.use('/api/daily', dailyRouter)
 app.use('/api/quote', quoteRouter)
+app.use('/api/insights', insightsRouter)
 
 if (process.env.NODE_ENV === 'test') {
 	const testingRouter = require('./controllers/testing')
