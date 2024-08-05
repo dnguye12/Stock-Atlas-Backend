@@ -11,3 +11,5 @@ insightsRouter.get('/:ticker/:reportsCount', async (request, response) => {
         response.json(result)
     }
 })
+
+module.exports = insightsRouter
