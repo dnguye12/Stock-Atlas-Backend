@@ -103,12 +103,12 @@ quoteRouter.get('/search/:query', async(request, response) => {
     }
 })
 
-quoteRouter.get('/news/:query', async(request, response) => {
-    const { query } = request.params
+quoteRouter.get('/news/:query/:count', async(request, response) => {
+    const { query, count } = request.params
 
     const queryOptions = {
         quotesCount: 0,
-        newsCount: 100
+        newsCount: count
     }
     try {
         const result = await yahooFinance.search(query, queryOptions)
