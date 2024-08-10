@@ -180,12 +180,16 @@ quoteRouter.get('/:ticker/esg', async(request, response) => {
                 })
             }
 
+            const esgScore = [
+                { type: 'Total ESG Risk Score', ...getCardData('TOTAL_ESG_SCORE') },
+                { type: 'Environmental Risk Score', ...getCardData('ENVIRONMENTAL_SCORE') },
+                { type: 'Social Risk Score', ...getCardData('SOCIAL_SCORE') },
+                { type: 'Governance Risk Score', ...getCardData('GOVERNANCE_SCORE') }
+            ];
+
             return {
-                totalESGScore: getCardData('TOTAL_ESG_SCORE'),
-                environmentalScore: getCardData('ENVIRONMENTAL_SCORE'),
-                socialScore: getCardData('SOCIAL_SCORE'),
-                governanceScore: getCardData('GOVERNANCE_SCORE'),
-                peerScores: getPeerScores(),
+                esgScore: esgScore,
+                peerScore: getPeerScores(),
             };
         });
         await browser.close();
