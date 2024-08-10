@@ -1,5 +1,6 @@
 const yahooFinance = require('yahoo-finance2').default
 const axios = require('axios');
+const puppeteer = require('puppeteer');
 
 const quoteRouter = require('express').Router()
 
@@ -118,6 +119,79 @@ quoteRouter.get('/news/:query/:count', async(request, response) => {
         }
     }catch (error) {
         response.status(500).json({ error: `Failed to search result for ${query}` });
+    }
+})
+
+quoteRouter.get('/:ticker/esg', async(request, response) => {
+    const {ticker} = request.params
+    const url = `https://finance.yahoo.com/quote/${ticker}/sustainability/`
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
+        const acceptButtonSelector = '.actions .accept-all';
+        const acceptButton = await page.$(acceptButtonSelector);
+
+        if (acceptButton) {
+            await page.click(acceptButtonSelector);
+        } else {
+            console.log('ESG - Accept All button not found');
+        }
+
+        await page.waitForSelector('section[data-testid="esg-cards"]');
+        await page.waitForSelector('section[data-testid="esg-peer-risk-scores"]');
+
+        const data = await page.evaluate(() => {
+            const getCardData = (testid) => {
+                const element = document.querySelector(`section[data-testid="${testid}"]`);
+                if (!element) return null;
+
+                const score = element.querySelector('h4')?.innerText || 'N/A';
+                const percentile = element.querySelector('span')?.innerText || 'N/A';
+                const performance = element.querySelector('.perf')?.innerText || 'N/A';
+
+                return { score, percentile, performance };
+            };
+
+            const getPeerScores = () => {
+                const peersTable = document.querySelector('section[data-testid="esg-peer-risk-scores"] table tbody')
+                if (!peersTable) {
+                    return []
+                }
+
+                const rows = Array.from(peersTable.querySelectorAll('tr'))
+                return rows.map(row => {
+                    const cells = row.querySelectorAll('td')
+                    const nameCell = cells[0]?.innerText.trim() || 'N/A';
+                    const [ticker, ...nameParts] = nameCell.split('\n');
+                    const name = nameParts.join(' ').trim();
+                    return {
+                        ticker: ticker.trim(),
+                        name: name,
+                        totalESGScore: cells[1]?.innerText.trim() || 'N/A',
+                        environmentalScore: cells[2]?.innerText.trim() || 'N/A',
+                        socialScore: cells[3]?.innerText.trim() || 'N/A',
+                        governanceScore: cells[4]?.innerText.trim() || 'N/A',
+                    }
+                })
+            }
+
+            return {
+                totalESGScore: getCardData('TOTAL_ESG_SCORE'),
+                environmentalScore: getCardData('ENVIRONMENTAL_SCORE'),
+                socialScore: getCardData('SOCIAL_SCORE'),
+                governanceScore: getCardData('GOVERNANCE_SCORE'),
+                peerScores: getPeerScores(),
+            };
+        });
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error('Error:', error);
     }
 })
 
