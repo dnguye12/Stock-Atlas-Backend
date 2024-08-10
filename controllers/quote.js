@@ -203,4 +203,145 @@ quoteRouter.get('/:ticker/esg', async(request, response) => {
     }
 })
 
+quoteRouter.get('/:ticker/income-annual', async(request, response) => {
+    const {ticker} = request.params
+
+    const url = `https://finance.yahoo.com/quote/${ticker}/financials/`
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
+        const acceptButtonSelector = '.actions .accept-all';
+        const acceptButton = await page.$(acceptButtonSelector);
+
+        if (acceptButton) {
+            await page.click(acceptButtonSelector);
+        } else {
+            console.log('Income Statement Annually - Accept All button not found');
+        }
+
+        await page.waitForSelector('.tableContainer .table .tableBody');
+
+        const data = await page.evaluate(() => {
+            const header = Array.from(document.querySelectorAll('.tableContainer .table .tableHeader .row')).map(row => {
+                const cells = Array.from(row.querySelectorAll('.column'));
+                return {
+                    data: cells.map(cell => cell.innerText.trim())
+                };
+            });
+
+            const table = document.querySelector('.tableContainer .table .tableBody')
+            const rows = Array.from(table.querySelectorAll('.row'))
+            const body =  rows.map(row => {
+                const cells = row.querySelectorAll('.column')
+                const title = cells[0].querySelector('.rowTitle')?.innerText.trim() || ''
+
+                let data = []
+                Array.from(cells).slice(1).map(cell => {
+                    data.push(cell.innerText.trim() || '')
+                })
+
+                return {
+                    title,
+                    data
+                }
+            })
+
+            return {
+                header,
+                body
+            }
+        });
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error('Error:', error);
+    }
+})
+
+quoteRouter.get('/:ticker/income-quarterly', async(request, response) => {
+    const {ticker} = request.params
+
+    const url = `https://finance.yahoo.com/quote/${ticker}/financials/`
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
+        let acceptButtonSelector = '.actions .accept-all';
+        let acceptButton = await page.$(acceptButtonSelector);
+
+        if (acceptButton) {
+            await page.click(acceptButtonSelector);
+        } else {
+            console.log('ESG - Accept All button not found');
+        }
+
+        await page.waitForSelector('.subToolbar')
+
+        const quarterlyTabSelector = '#tab-quarterly';
+        const quarterlyTab = await page.$(quarterlyTabSelector);
+
+        if (quarterlyTab) {
+            await page.click(quarterlyTabSelector);
+
+            // Wait for the aria-selected attribute to change to "true"
+            await page.waitForFunction(
+                selector => document.querySelector(selector).getAttribute('aria-selected') === 'true',
+                {},
+                quarterlyTabSelector
+            );
+
+            // Additional wait for the table data to load fully
+            await page.waitForSelector('.tableContainer .table .tableBody');
+        } else {
+            console.log('Change timeline button not found');
+        }
+
+        await page.waitForSelector('.tableContainer .table .tableBody');
+
+        const data = await page.evaluate(() => {
+            const header = Array.from(document.querySelectorAll('.tableContainer .table .tableHeader .row')).map(row => {
+                const cells = Array.from(row.querySelectorAll('.column'));
+                return {
+                    data: cells.map(cell => cell.innerText.trim())
+                };
+            });
+
+            const table = document.querySelector('.tableContainer .table .tableBody')
+            const rows = Array.from(table.querySelectorAll('.row'))
+            const body = rows.map(row => {
+                const cells = row.querySelectorAll('.column')
+                const title = cells[0].querySelector('.rowTitle')?.innerText.trim() || ''
+
+                let data = []
+                Array.from(cells).slice(1).map(cell => {
+                    data.push(cell.innerText.trim() || '')
+                })
+
+                return {
+                    title,
+                    data
+                }
+            })
+
+            return {
+                header,
+                body
+            }
+        });
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error('Error:', error);
+    }
+})
+
 module.exports = quoteRouter
