@@ -187,6 +187,10 @@ quoteRouter.get('/:ticker/esg', async(request, response) => {
                 { type: 'Governance Risk Score', ...getCardData('GOVERNANCE_SCORE') }
             ];
 
+            if(esgScore && !esgScore[0].score) {
+                esgScore[0].score = (Number(esgScore[1].score) + Number(esgScore[2].score) + Number(esgScore[3].score)).toFixed(1)
+            }
+
             return {
                 esgScore: esgScore,
                 peerScore: getPeerScores(),
