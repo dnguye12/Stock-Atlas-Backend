@@ -667,4 +667,92 @@ quoteRouter.get('/:ticker/cash-flow-quarterly', async (request, response) => {
     }
 })
 
+quoteRouter.get('/:ticker/ratios-annual', async (request, response) => {
+    const { ticker } = request.params
+    const url = `https://stockanalysis.com/stocks/${ticker}/financials/ratios/`;
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+
+        await page.waitForSelector('#main-table')
+
+        const data = await page.evaluate(() => {
+            const header = Array.from(document.querySelectorAll('#main-table thead tr th')).slice(0, -1).map((cell, idx) => {
+                return cell.innerText.trim()
+            })
+
+            const rows = Array.from(document.querySelectorAll('#main-table tbody tr'))
+            const body = rows.map(row => {
+                let data = []
+                Array.from(row.querySelectorAll('td')).slice(0, -1).map(c => {
+                    if (c.innerText.trim() === '-') {
+                        data.push('--')
+                    }
+                    data.push(c.innerText.trim() || '--')
+                })
+                return data
+            })
+
+            return {
+                header,
+                body
+            }
+        });
+
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+})
+
+quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
+    const { ticker } = request.params
+    const url = `https://stockanalysis.com/stocks/${ticker}/financials/ratios/?p=quarterly`;
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+
+        await page.waitForSelector('#main-table')
+
+        const data = await page.evaluate(() => {
+            const header = Array.from(document.querySelectorAll('#main-table thead tr th')).slice(0, -1).map((cell, idx) => {
+                return cell.innerText.trim()
+            })
+
+            const rows = Array.from(document.querySelectorAll('#main-table tbody tr'))
+            const body = rows.map(row => {
+                let data = []
+                Array.from(row.querySelectorAll('td')).slice(0, -1).map(c => {
+                    if (c.innerText.trim() === '-') {
+                        data.push('--')
+                    }
+                    data.push(c.innerText.trim() || '--')
+                })
+                return data
+            })
+
+            return {
+                header,
+                body
+            }
+        });
+
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+})
+
 module.exports = quoteRouter
