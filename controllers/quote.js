@@ -698,8 +698,10 @@ quoteRouter.get('/:ticker/ratios-annual', async (request, response) => {
             })
 
             return {
-                header,
-                body
+                "ratiosAnnual": {
+                    header,
+                    body
+                }
             }
         });
 
@@ -713,7 +715,7 @@ quoteRouter.get('/:ticker/ratios-annual', async (request, response) => {
 
 quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
     const { ticker } = request.params
-    const url = `https://stockanalysis.com/stocks/${ticker}/financials/ratios/?p=quarterly`;
+    const url = `https://stockanalysis.com/stocks/${ticker}/financials/ratios`;
 
     try {
         const browser = await puppeteer.launch()
@@ -721,6 +723,22 @@ quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
 
         await page.setViewport({ width: 1920, height: 1080 });
         await page.goto(url)
+
+        // Click the "Quarterly" button and wait for it to have the "active" class
+        await page.evaluate(() => {
+            const buttons = Array.from(document.querySelectorAll("nav .submenu li button"));
+            const quarterlyButton = buttons.find(btn => btn.innerText.trim() === "Quarterly");
+            if (quarterlyButton) {
+                quarterlyButton.click();
+            }
+        });
+
+        // Wait for the "active" class to be added to the "Quarterly" button
+        await page.waitForFunction(() => {
+            const buttons = Array.from(document.querySelectorAll("nav .submenu li button"));
+            const quarterlyButton = buttons.find(btn => btn.innerText.trim() === "Quarterly");
+            return quarterlyButton && quarterlyButton.classList.contains('active');
+        });
 
         await page.waitForSelector('#main-table')
 
@@ -742,11 +760,12 @@ quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
             })
 
             return {
-                header,
-                body
+                "ratiosQuarterly": {
+                    header,
+                    body
+                }
             }
         });
-
         await browser.close();
         response.json(data)
     } catch (error) {
