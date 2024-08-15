@@ -65,23 +65,32 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
 
         const content = await page.evaluate((count) => {
             const res = []
-            const rows = document.querySelectorAll('table tbody tr.simpTblRow')
+            const rows = document.querySelectorAll('table tbody tr.row')
 
             for (let i = 0; i < count && i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
 
                 if (cells.length >= 9) {
+                    const block0 = cells[0].textContent.trim().split(' ')
+                    const symbol = block0[0]
+                    const name = block0.slice(1).join(' ')
+
+                    const block1 = cells[1].textContent.trim().split(' ')
+                    const price = block1[0]
+                    const change = block1[1]
+                    const percentChange = block1[2].replace(/[()]/g, '')
+
                     const rowObj = {
-                        symbol: cells[0].textContent.trim(),
-                        name: cells[1].textContent.trim(),
-                        price: cells[2].textContent.trim(),
-                        change: cells[3].textContent.trim(),
-                        percentChange: cells[4].textContent.trim(),
-                        volume: cells[5].textContent.trim(),
-                        avgVol: cells[6].textContent.trim(),
-                        marketCap: cells[7].textContent.trim(),
-                        pe: cells[8].textContent.trim()
+                        symbol,
+                        name,
+                        price,
+                        change,
+                        percentChange,
+                        volume: cells[4].textContent.trim(),
+                        avgVol: cells[5].textContent.trim(),
+                        marketCap: cells[6].textContent.trim(),
+                        pe: cells[7].textContent.trim()
                     };
                     res.push(rowObj);
                 }
@@ -150,23 +159,32 @@ dailyRouter.get('/active/:count?', async (request, response) => {
 
         const content = await page.evaluate((count) => {
             const res = []
-            const rows = document.querySelectorAll('table tbody tr.simpTblRow')
+            const rows = document.querySelectorAll('table tbody tr.row')
 
             for (let i = 0; i < count && i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
 
                 if (cells.length >= 9) {
+                    const block0 = cells[0].textContent.trim().split(' ')
+                    const symbol = block0[0]
+                    const name = block0.slice(1).join(' ')
+
+                    const block1 = cells[1].textContent.trim().split(' ')
+                    const price = block1[0]
+                    const change = block1[1]
+                    const percentChange = block1[2].replace(/[()]/g, '')
+
                     const rowObj = {
-                        symbol: cells[0].textContent.trim(),
-                        name: cells[1].textContent.trim(),
-                        price: cells[2].textContent.trim(),
-                        change: cells[3].textContent.trim(),
-                        percentChange: cells[4].textContent.trim(),
-                        volume: cells[5].textContent.trim(),
-                        avgVol: cells[6].textContent.trim(),
-                        marketCap: cells[7].textContent.trim(),
-                        pe: cells[8].textContent.trim()
+                        symbol,
+                        name,
+                        price,
+                        change,
+                        percentChange,
+                        volume: cells[4].textContent.trim(),
+                        avgVol: cells[5].textContent.trim(),
+                        marketCap: cells[6].textContent.trim(),
+                        pe: cells[7].textContent.trim()
                     };
                     res.push(rowObj);
                 }

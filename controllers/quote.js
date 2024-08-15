@@ -698,10 +698,8 @@ quoteRouter.get('/:ticker/ratios-annual', async (request, response) => {
             })
 
             return {
-                "ratiosAnnual": {
-                    header,
-                    body
-                }
+                header,
+                body
             }
         });
 
@@ -760,10 +758,8 @@ quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
             })
 
             return {
-                "ratiosQuarterly": {
-                    header,
-                    body
-                }
+                header,
+                body
             }
         });
         await browser.close();
