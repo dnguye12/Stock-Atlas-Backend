@@ -770,4 +770,57 @@ quoteRouter.get('/:ticker/ratios-quarterly', async (request, response) => {
     }
 })
 
+quoteRouter.get('/:ticker/altman-score', async(request, response) => {
+    const { ticker } = request.params
+
+    const url = `https://stockanalysis.com/stocks/${ticker}/statistics/`;
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+
+        await page.waitForSelector('#main');
+
+        const data = await page.evaluate(() => {
+            const tables = Array.from(document.querySelectorAll('table'));
+            let targetTable;
+
+            for (let table of tables) {
+                const rows = Array.from(table.querySelectorAll('tbody tr'))
+
+                if (rows.length > 0) {
+                    const firstTdText = rows[0]?.querySelector('td span')?.innerText.trim()
+                    const secondTdText = rows[1]?.querySelector('td span')?.innerText.trim()
+
+                    if (firstTdText?.toLowerCase().includes('altman') && secondTdText?.toLowerCase().includes('piotroski')) {
+                        targetTable = table;
+                        break;
+                    }
+                }
+            }
+
+            if (targetTable) {
+                const rows = Array.from(targetTable.querySelectorAll('tbody tr'));
+                return rows.map(row => {
+                    const cells = Array.from(row.querySelectorAll('td'));
+                    return {
+                        metric: cells[0].innerText.trim(),
+                        value: cells[1].innerText.trim()
+                    };
+                });
+            }
+
+            return []
+        });
+        await browser.close();
+        response.json(data);
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+})
+
 module.exports = quoteRouter
