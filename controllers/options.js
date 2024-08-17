@@ -4,12 +4,29 @@ const optionsRouter = require('express').Router()
 optionsRouter.get('/:ticker', async (request, response) => {
     const { ticker } = request.params
 
-    const queryOptions = { lang: 'en-US', formatted: false, region: 'US' };
-    const result = await yahooFinance.options(ticker, queryOptions)
+    let queryOptions = { lang: 'en-US', formatted: false, region: 'US' };
+    let result = await yahooFinance.options(ticker, queryOptions);
 
-    if (result) {
-        response.json(result)
+    let dates;
+    let data = []
+    if (result && result.expirationDates) {
+        dates = result.expirationDates
     }
+
+    if (dates.length > 0) {
+        for (let date of dates) {
+            queryOptions.date = date
+            result = await yahooFinance.options('NVDA', queryOptions)
+
+            if (result) {
+                data.push(result.options)
+            }
+
+            delete queryOptions.date
+        }
+    } 
+        response.json(data)
+    
 })
 
 module.exports = optionsRouter
