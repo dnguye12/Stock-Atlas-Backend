@@ -8,6 +8,7 @@ optionsRouter.get('/:ticker', async (request, response) => {
     let result = await yahooFinance.options(ticker, queryOptions);
 
     let dates;
+    let res = {}
     let data = []
     if (result && result.expirationDates) {
         dates = result.expirationDates
@@ -16,17 +17,25 @@ optionsRouter.get('/:ticker', async (request, response) => {
     if (dates.length > 0) {
         for (let date of dates) {
             queryOptions.date = date
-            result = await yahooFinance.options('NVDA', queryOptions)
+            result = await yahooFinance.options(ticker, queryOptions)
 
             if (result) {
-                data.push(result.options)
+                data.push(
+                    {
+                        strikes: result.strikes,
+                        options: result.options
+                    }
+                )
             }
 
             delete queryOptions.date
         }
-    } 
-        response.json(data)
-    
+    }
+
+    res.expirationDates = dates
+    res.data = data
+    response.json(res)
+
 })
 
 module.exports = optionsRouter
