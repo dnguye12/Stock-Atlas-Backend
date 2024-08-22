@@ -221,12 +221,10 @@ dailyRouter.get('/most-shorted-stocks', async(request, response) => {
 
         await page.waitForSelector('table')
 
-        await page.screenshot({ path: "screenshot.png" })
-
         const data = await page.evaluate(() => {
             const table = document.querySelector('table tbody')
             const rows = Array.from(table.querySelectorAll('.simpTblRow'))
-            const body = rows.map(row => {
+            return rows.map(row => {
                 const cells = row.querySelectorAll('td')
 
                 if (cells.length >= 9) {
@@ -238,17 +236,13 @@ dailyRouter.get('/most-shorted-stocks', async(request, response) => {
                     const volume = cells[5].innerText.trim() || ''
                     const avgVolume = cells[6].innerText.trim() || ''
                     const marketCap = cells[7].innerText.trim() || ''
-                    const pe = cells[8].innerText.trim() || ''
+                    const pe = cells[8].innerText.trim() !== "N/A" ? cells[8].innerText.trim() : ''
 
                     return {
                         title, name, price, change, percentChange, volume, avgVolume, marketCap, pe
                     }
                 }
             })
-
-            return {
-                body
-            }
         });
 
         await browser.close();
