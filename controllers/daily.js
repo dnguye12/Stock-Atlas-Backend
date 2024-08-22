@@ -200,4 +200,62 @@ dailyRouter.get('/active/:count?', async (request, response) => {
     }
 })
 
+dailyRouter.get('/most-shorted-stocks', async(request, response) => {
+    const url = 'https://finance.yahoo.com/screener/predefined/most_shorted_stocks?offset=0&count=100'
+
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1920, height: 1080 });
+        await page.goto(url)
+        await page.waitForSelector('#consent-page .con-wizard')
+        let acceptButtonSelector = '.actions .accept-all';
+        let acceptButton = await page.$(acceptButtonSelector);
+
+        if (acceptButton) {
+            await page.click(acceptButtonSelector);
+        } else {
+            console.log('ESG - Accept All button not found');
+        }
+
+        await page.waitForSelector('table')
+
+        await page.screenshot({ path: "screenshot.png" })
+
+        const data = await page.evaluate(() => {
+            const table = document.querySelector('table tbody')
+            const rows = Array.from(table.querySelectorAll('.simpTblRow'))
+            const body = rows.map(row => {
+                const cells = row.querySelectorAll('td')
+
+                if (cells.length >= 9) {
+                    const title = cells[0].innerText.trim() || ''
+                    const name = cells[1].innerText.trim() || ''
+                    const price = cells[2].innerText.trim() || ''
+                    const change = cells[3].innerText.trim() || ''
+                    const percentChange = cells[4].innerText.trim() || ''
+                    const volume = cells[5].innerText.trim() || ''
+                    const avgVolume = cells[6].innerText.trim() || ''
+                    const marketCap = cells[7].innerText.trim() || ''
+                    const pe = cells[8].innerText.trim() || ''
+
+                    return {
+                        title, name, price, change, percentChange, volume, avgVolume, marketCap, pe
+                    }
+                }
+            })
+
+            return {
+                body
+            }
+        });
+
+        await browser.close();
+        response.json(data)
+    } catch (error) {
+        console.error('Error:', error);
+    }
+})
+
 module.exports = dailyRouter
