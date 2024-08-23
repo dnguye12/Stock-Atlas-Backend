@@ -7,12 +7,12 @@ dailyRouter.get('/gainers/:count?/:region?', async (request, response) => {
     const queryOptions = {}
     if (count) {
         if (isNaN(count)) {
-            queryOptions.count = 5
+            queryOptions.count = 100
             queryOptions.region = count
         }
         queryOptions.count = count
     } else {
-        queryOptions.count = 5
+        queryOptions.count = 100
     }
 
     if (count && region) {
@@ -40,10 +40,10 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
     let { count } = request.params
 
     if (!count || isNaN(count)) {
-        count = 5
+        count = 100
     }
 
-    const url = 'https://finance.yahoo.com/losers/'
+    const url = 'https://finance.yahoo.com/screener/predefined/day_losers/?offset=0&count=100'
 
     try {
         const browser = await puppeteer.launch()
@@ -65,32 +65,25 @@ dailyRouter.get('/losers/:count?/', async (request, response) => {
 
         const content = await page.evaluate((count) => {
             const res = []
-            const rows = document.querySelectorAll('table tbody tr.row')
+            const rows = document.querySelectorAll('table tbody tr')
 
             for (let i = 0; i < count && i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
 
                 if (cells.length >= 9) {
-                    const block0 = cells[0].textContent.trim().split(' ')
-                    const symbol = block0[0]
-                    const name = block0.slice(1).join(' ')
-
-                    const block1 = cells[1].textContent.trim().split(' ')
-                    const price = block1[0]
-                    const change = block1[1]
-                    const percentChange = block1[2].replace(/[()]/g, '')
+                    const title = cells[0].innerText.trim() || ''
+                    const name = cells[1].innerText.trim() || ''
+                    const price = cells[2].innerText.trim() || ''
+                    const change = cells[3].innerText.trim() || ''
+                    const percentChange = cells[4].innerText.trim() || ''
+                    const volume = cells[5].innerText.trim() || ''
+                    const avgVolume = cells[6].innerText.trim() || ''
+                    const marketCap = cells[7].innerText.trim() || ''
+                    const pe = cells[8].innerText.trim() !== "N/A" ? cells[8].innerText.trim() : ''
 
                     const rowObj = {
-                        symbol,
-                        name,
-                        price,
-                        change,
-                        percentChange,
-                        volume: cells[4].textContent.trim(),
-                        avgVol: cells[5].textContent.trim(),
-                        marketCap: cells[6].textContent.trim(),
-                        pe: cells[7].textContent.trim()
+                        title, name, price, change, percentChange, volume, avgVolume, marketCap, pe
                     };
                     res.push(rowObj);
                 }
@@ -111,13 +104,13 @@ dailyRouter.get('/trending/:count?/:region?', async (request, response) => {
     const queryOptions = {}
     if (count) {
         if (isNaN(count)) {
-            queryOptions.count = 5
+            queryOptions.count = 100
             region = count
         } else {
             queryOptions.count = count
         }
     } else {
-        queryOptions.count = 5
+        queryOptions.count = 100
     }
 
     if (!region) {
@@ -134,10 +127,10 @@ dailyRouter.get('/active/:count?', async (request, response) => {
     let { count } = request.params
 
     if (!count || isNaN(count)) {
-        count = 5
+        count = 100
     }
 
-    const url = `https://finance.yahoo.com/most-active/`
+    const url = `https://finance.yahoo.com/screener/predefined/most_actives/?offset=0&count=100`
 
     try {
         const browser = await puppeteer.launch()
@@ -159,32 +152,25 @@ dailyRouter.get('/active/:count?', async (request, response) => {
 
         const content = await page.evaluate((count) => {
             const res = []
-            const rows = document.querySelectorAll('table tbody tr.row')
+            const rows = document.querySelectorAll('table tbody tr')
 
             for (let i = 0; i < count && i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
 
                 if (cells.length >= 9) {
-                    const block0 = cells[0].textContent.trim().split(' ')
-                    const symbol = block0[0]
-                    const name = block0.slice(1).join(' ')
-
-                    const block1 = cells[1].textContent.trim().split(' ')
-                    const price = block1[0]
-                    const change = block1[1]
-                    const percentChange = block1[2].replace(/[()]/g, '')
+                    const title = cells[0].innerText.trim() || ''
+                    const name = cells[1].innerText.trim() || ''
+                    const price = cells[2].innerText.trim() || ''
+                    const change = cells[3].innerText.trim() || ''
+                    const percentChange = cells[4].innerText.trim() || ''
+                    const volume = cells[5].innerText.trim() || ''
+                    const avgVolume = cells[6].innerText.trim() || ''
+                    const marketCap = cells[7].innerText.trim() || ''
+                    const pe = cells[8].innerText.trim() !== "N/A" ? cells[8].innerText.trim() : ''
 
                     const rowObj = {
-                        symbol,
-                        name,
-                        price,
-                        change,
-                        percentChange,
-                        volume: cells[4].textContent.trim(),
-                        avgVol: cells[5].textContent.trim(),
-                        marketCap: cells[6].textContent.trim(),
-                        pe: cells[7].textContent.trim()
+                        title, name, price, change, percentChange, volume, avgVolume, marketCap, pe
                     };
                     res.push(rowObj);
                 }
@@ -200,7 +186,14 @@ dailyRouter.get('/active/:count?', async (request, response) => {
     }
 })
 
-dailyRouter.get('/most-shorted-stocks', async(request, response) => {
+dailyRouter.get('/most-shorted-stocks/:count?', async (request, response) => {
+    let { count } = request.params
+
+    if (!count || isNaN(count)) {
+        count = 100
+    }
+
+
     const url = 'https://finance.yahoo.com/screener/predefined/most_shorted_stocks?offset=0&count=100'
 
     try {
@@ -221,10 +214,13 @@ dailyRouter.get('/most-shorted-stocks', async(request, response) => {
 
         await page.waitForSelector('table')
 
-        const data = await page.evaluate(() => {
+        const data = await page.evaluate((count) => {
+            const res = []
             const table = document.querySelector('table tbody')
             const rows = Array.from(table.querySelectorAll('.simpTblRow'))
-            return rows.map(row => {
+
+            for (let i = 0; i < count && i < rows.length; i++) {
+                const row = rows[i]
                 const cells = row.querySelectorAll('td')
 
                 if (cells.length >= 9) {
@@ -238,12 +234,14 @@ dailyRouter.get('/most-shorted-stocks', async(request, response) => {
                     const marketCap = cells[7].innerText.trim() || ''
                     const pe = cells[8].innerText.trim() !== "N/A" ? cells[8].innerText.trim() : ''
 
-                    return {
+                    res.push({
                         title, name, price, change, percentChange, volume, avgVolume, marketCap, pe
-                    }
+                    })
                 }
-            })
-        });
+            }
+
+            return res
+        }, count);
 
         await browser.close();
         response.json(data)
